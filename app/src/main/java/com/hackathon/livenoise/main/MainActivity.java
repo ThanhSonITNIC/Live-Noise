@@ -2,8 +2,6 @@ package com.hackathon.livenoise.main;
 
 import android.os.Bundle;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 import com.hackathon.livenoise.R;
 
 import androidx.appcompat.app.AppCompatActivity;
