@@ -10,10 +10,8 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProviders;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -30,10 +28,14 @@ import com.google.android.libraries.places.compat.GeoDataClient;
 import com.google.android.libraries.places.compat.PlaceDetectionClient;
 import com.google.android.libraries.places.compat.Places;
 import com.hackathon.livenoise.R;
+import com.hackathon.livenoise.interfaces.MapInterface;
+import com.hackathon.livenoise.models.MapModel;
+
+import java.util.EventListener;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback {
 
-    private MapViewModel mViewModel;
+    private MapModel mMapModel;
 
     private GoogleMap mMap;
 
@@ -94,8 +96,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mViewModel = ViewModelProviders.of(this).get(MapViewModel.class);
-        // TODO: Use the ViewModel
+        // TODO: Use the MapModel
 
     }
 
