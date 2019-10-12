@@ -117,6 +117,7 @@ public class CheckNoiseActivity extends AppCompatActivity {
         btnAction.setClickable(false);
         progressBar.setVisibility(View.VISIBLE);
         txtResult.setVisibility(View.GONE);
+        btnReport.setVisibility(View.GONE);
         progressBar.setVisibility(View.VISIBLE);
         tvDecibel.setText(R.string.loading);
         tvDecibel.setTextSize(24);
@@ -136,17 +137,18 @@ public class CheckNoiseActivity extends AppCompatActivity {
             @Override
             public void run() {
                 stopRecord();
-                runOnUiThread(new Runnable() {
+                tvDecibel.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         showResult();
                     }
-                });
+                }, 100);
             }
         }, 5000);
     }
 
     public void showResult() {
+        btnAction.setClickable(true);
         progressBar.setVisibility(View.INVISIBLE);
         txtResult.setVisibility(View.VISIBLE);
         decibelValue = (int) getDecibelValue();
@@ -154,7 +156,7 @@ public class CheckNoiseActivity extends AppCompatActivity {
         if (decibelValue < 20) {
             tvDecibel.setTextColor(getResources().getColor(R.color.text_color_white));
             txtResult.setText(R.string.result_1);
-        } else if (decibelValue < 70) {
+        } else if (decibelValue < 78) {
             tvDecibel.setTextColor(getResources().getColor(R.color.text_color_blue));
             txtResult.setText(R.string.result_2);
         } else if (decibelValue < 85) {
@@ -231,7 +233,6 @@ public class CheckNoiseActivity extends AppCompatActivity {
     }
 
     private void stopRecord() {
-        btnAction.setClickable(true);
         if (soundMeter != null) {
             soundMeter.stop();
         }

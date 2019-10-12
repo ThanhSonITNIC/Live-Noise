@@ -2,15 +2,18 @@ package com.hackathon.livenoisex.main;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,9 +26,8 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.Circle;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
@@ -34,10 +36,6 @@ import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.libraries.places.compat.GeoDataClient;
-import com.google.android.libraries.places.compat.PlaceDetectionClient;
-import com.google.android.libraries.places.compat.Places;
-import com.google.firebase.database.core.Repo;
 import com.google.maps.android.heatmaps.Gradient;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 import com.google.maps.android.heatmaps.WeightedLatLng;
@@ -170,7 +168,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
-                onCreateDialog().show();
+                Report report = (Report) marker.getTag();
+                createReportDialog(report).show();
             }
         });
 
@@ -255,17 +254,21 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         if (mReportList == null || mReportList.size() == 0) {
             return;
         }
-        if(mReportMakerList!=null){
-            for (Marker marker: mReportMakerList){
+        if (mReportMakerList != null) {
+            for (Marker marker : mReportMakerList) {
                 marker.remove();
             }
         }
         mReportMakerList = new CopyOnWriteArrayList<>();
         for (int i = 0, n = mReportList.size(); i < n; ++i) {
             Report report = mReportList.get(i);
-            mReportMakerList.add(mMap.addMarker(new MarkerOptions()
+            Marker marker = mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_warning))
+                    .title("" + report.getDecibel())
                     .position(new LatLng(report.getLatitude(),
-                            report.getLongtitude()))));
+                            report.getLongtitude())));
+            marker.setTag(report);
+            mReportMakerList.add(marker);
         }
     }
 
@@ -452,8 +455,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
     }
 
-    public Dialog onCreateDialog() {
-
+    public Dialog createReportDialog(final Report report) {
+        Dialog dialog = null;
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = getActivity().getLayoutInflater();
 
@@ -461,8 +464,34 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
         // Inflate and set the layout for the dialog
         // Pass null as the parent view because its going in the dialog layout
-        builder.setView(inflater.inflate(R.layout.dialog_resource, null));
+        View view = inflater.inflate(R.layout.dialog_resource, null);
+        builder.setView(view);
+
+        ((TextView)view.findViewById(R.id.tv_decibel)).setText(report.getDecibel()+"");
+        ((TextView)view.findViewById(R.id.tv_desc)).setText(report.getDescription());
+        ((TextView)view.findViewById(R.id.tv_location)).setText(String.format("%.2f - %.2f",
+                report.getLatitude(), report.getLongtitude()));
+        ((TextView)view.findViewById(R.id.tv_phone)).setText(report.getPhone()+"");
+
+        ((TextView)view.findViewById(R.id.btn_call)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String uri = "tel:" + report.getPhone() ;
+                Intent intent = new Intent(Intent.ACTION_DIAL);
+                intent.setData(Uri.parse(uri));
+                startActivity(intent);
+            }
+        });
+
         // Add action buttons;
-        return builder.create();
+        dialog = builder.create();
+        final Dialog finalDialog = dialog;
+        ((TextView)view.findViewById(R.id.btn_close)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finalDialog.cancel();
+            }
+        });
+        return dialog;
     }
 }

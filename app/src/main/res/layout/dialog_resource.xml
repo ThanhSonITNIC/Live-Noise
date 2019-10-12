@@ -1,37 +1,144 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:layout_centerHorizontal="false"
     android:orientation="vertical"
     android:outlineProvider="none"
+    android:paddingBottom="16dp"
     android:textAlignment="center">
+
 
     <TextView
         android:id="@+id/location"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#c4001d"
         android:padding="10dp"
-        android:text="Location" />
+        android:text="Report"
+        android:textColor="@color/text_color_white"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_percent="0.5" />
 
     <TextView
         android:id="@+id/numberPhone"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:padding="10dp"
-        android:text="Number Phone" />
+        android:text="Number Phone"
+        android:textColor="@color/text_color_black"
+        android:textSize="16sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/location"
+        app:layout_constraintWidth_percent="0.5" />
 
     <TextView
         android:id="@+id/description"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:padding="10dp"
-        android:text="Description" />
+        android:text="Description"
+        android:textColor="@color/text_color_black"
+        android:textSize="16sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/avg"
+        app:layout_constraintWidth_percent="0.5" />
 
     <TextView
         android:id="@+id/avg"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:padding="10dp"
-        android:text="Average" />
-</LinearLayout>
+        android:text="Average decibel"
+        android:textColor="@color/text_color_black"
+        android:textSize="16sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_phone"
+        app:layout_constraintWidth_percent="0.5" />
+
+    <TextView
+        android:id="@+id/tv_location"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="right"
+        android:padding="10dp"
+        android:text="Location"
+        android:textColor="@color/text_color_white"
+        app:layout_constraintBottom_toBottomOf="@id/location"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/location"
+        app:layout_constraintWidth_percent="0.5" />
+
+    <TextView
+        android:id="@+id/tv_phone"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="right"
+        android:padding="10dp"
+        android:text="Number Phone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/location"
+        app:layout_constraintWidth_percent="0.5" />
+
+    <TextView
+        android:id="@+id/tv_desc"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_margin="16dp"
+        android:background="@drawable/bg_edittext"
+        android:gravity="top"
+        android:padding="10dp"
+        android:text="Description"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/description"
+        app:layout_constraintWidth_percent="0.5" />
+
+    <TextView
+        android:id="@+id/tv_decibel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="right"
+        android:padding="10dp"
+        android:text="Average"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/avg"
+        app:layout_constraintWidth_percent="0.5" />
+
+    <TextView
+        android:layout_width="112dp"
+        android:layout_height="48dp"
+        android:layout_margin="16dp"
+        android:paddingRight="16dp"
+        android:background="@drawable/bg_btn_red"
+        android:drawableLeft="@drawable/ic_close"
+        android:gravity="center"
+        android:paddingLeft="12dp"
+        android:text="Close"
+        android:id="@+id/btn_close"
+        android:textColor="@color/text_color_white"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_desc" />
+
+    <TextView
+        android:layout_width="112dp"
+        android:layout_height="48dp"
+        android:layout_margin="16dp"
+        android:paddingRight="16dp"
+        android:background="@drawable/bg_btn_green"
+        android:drawableLeft="@drawable/ic_call_black_24dp"
+        android:gravity="center"
+        android:paddingLeft="16dp"
+        android:text="Call"
+        android:id="@+id/btn_call"
+        android:textColor="@color/text_color_white"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@id/btn_close"
+        app:layout_constraintTop_toBottomOf="@id/tv_desc" />
+</androidx.constraintlayout.widget.ConstraintLayout>
