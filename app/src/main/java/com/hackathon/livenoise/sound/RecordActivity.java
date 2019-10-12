@@ -16,12 +16,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.hackathon.livenoise.R;
 import com.hackathon.livenoise.main.MainActivity;
 
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 public class RecordActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private TextView tvDecibel, btnAction, txtResult, btnReport;
     private SoundMeter soundMeter = null;
     private GetSoundThread getSoundThread;
-    private double maxDecibel = 0;
+    private List<Double> decibelBuffer = new CopyOnWriteArrayList<>();
+    private int bufferIndex = 0;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -33,7 +37,6 @@ public class RecordActivity extends AppCompatActivity {
         btnAction = findViewById(R.id.btn_action);
         txtResult = findViewById(R.id.txt_result);
         btnReport = findViewById(R.id.btn_report);
-
 
 
         btnAction.setOnClickListener(new View.OnClickListener() {
@@ -48,7 +51,6 @@ public class RecordActivity extends AppCompatActivity {
         }
 
 
-
     }
 
     private void startRecord() {
@@ -60,7 +62,7 @@ public class RecordActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         tvDecibel.setVisibility(View.VISIBLE);
 
-        if(soundMeter==null){
+        if (soundMeter == null) {
             soundMeter = new SoundMeter();
         }
 
@@ -83,7 +85,7 @@ public class RecordActivity extends AppCompatActivity {
         progressBar.setVisibility(View.INVISIBLE);
         txtResult.setVisibility(View.VISIBLE);
 
-        tvDecibel.setText(((int) maxDecibel)+"");
+        tvDecibel.setText(getDecibelValue() + "");
 
         btnReport.setVisibility(View.VISIBLE);
         btnReport.setClickable(true);
@@ -101,6 +103,15 @@ public class RecordActivity extends AppCompatActivity {
         btnAction.setText(R.string.view_noise_map);
     }
 
+    private int getDecibelValue() {
+        double sum = 0;
+        int n = decibelBuffer.size();
+        for (int i = 0; i < n; ++i) {
+            sum += decibelBuffer.get(i);
+        }
+        return (int) (sum / n);
+    }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -116,11 +127,11 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     private void stopRecord() {
-        if(soundMeter!=null) {
+        if (soundMeter != null) {
             soundMeter.stop();
         }
 
-        if(getSoundThread!=null && getSoundThread.isRunning()){
+        if (getSoundThread != null && getSoundThread.isRunning()) {
             getSoundThread.stopRunning();
         }
     }
@@ -128,25 +139,22 @@ public class RecordActivity extends AppCompatActivity {
     class GetSoundThread extends Thread {
         private volatile boolean flag = true;
 
-        public void stopRunning(){
+        public void stopRunning() {
             flag = false;
         }
 
-        public boolean isRunning(){
+        public boolean isRunning() {
             return flag;
         }
 
         @Override
         public void run() {
             super.run();
-            while (flag){
+            while (flag) {
                 double decibel = soundMeter.getDecibel();
-                if(decibel>0){
-                    if(maxDecibel < decibel){
-                        maxDecibel = decibel;
-                    }
-                    final String s = String.valueOf((int)decibel);
-
+                if (decibel > 0) {
+                    decibelBuffer.add(decibel);
+                    final String s = String.valueOf((int) decibel);
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {

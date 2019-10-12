@@ -1,12 +1,14 @@
 package com.hackathon.livenoise.main;
 
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,15 +24,28 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.TileOverlay;
+import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.compat.GeoDataClient;
 import com.google.android.libraries.places.compat.PlaceDetectionClient;
 import com.google.android.libraries.places.compat.Places;
+import com.google.maps.android.heatmaps.Gradient;
+import com.google.maps.android.heatmaps.HeatmapTileProvider;
+import com.google.maps.android.heatmaps.WeightedLatLng;
 import com.hackathon.livenoise.R;
 import com.hackathon.livenoise.models.MapModel;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.EventListener;
+import java.util.List;
+import java.util.Scanner;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback {
 
@@ -59,6 +74,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     // Keys for storing activity state.
     private static final String KEY_CAMERA_POSITION = "camera_position";
     private static final String KEY_LOCATION = "location";
+    private HeatmapTileProvider mProvider;
+    private TileOverlay mOverlay;
 
 
     public static MapFragment newInstance() {
@@ -138,7 +155,74 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         // Get the current location of the device and set the position of the map.
         getDeviceLocation();
 
+        getSoundData();
+
     }
+
+    private void getSoundData() {
+        addHeatMap();
+    }
+
+    private static final int[] ALT_HEATMAP_GRADIENT_COLORS = {
+            Color.argb(0, 255, 0, 0),// transparent
+            Color.argb(50, 255, 0, 0),// transparent
+            Color.argb(125, 255, 0, 0),// transparent
+            Color.argb(255, 255, 0, 0)// transparent
+    };
+
+    public static final float[] ALT_HEATMAP_GRADIENT_START_POINTS = {
+            0.0f, 0.50f,1.0f, 2.0f
+    };
+
+    public static final Gradient ALT_HEATMAP_GRADIENT = new Gradient(ALT_HEATMAP_GRADIENT_COLORS,
+            ALT_HEATMAP_GRADIENT_START_POINTS);
+
+
+    private void addHeatMap() {
+        List<WeightedLatLng> list = null;
+
+        // Get the data: latitude/longitude positions of police stations.
+        try {
+            list = readItems(R.raw.police_stations);
+        } catch (JSONException e) {
+            Toast.makeText(getActivity(), "Problem reading list of locations.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        int[] colors = {
+                Color.rgb(102, 225, 0), // green
+                Color.rgb(255, 0, 0)    // red
+        };
+
+        float[] startPoints = {
+                0.2f, 1f
+        };
+        Gradient gradient = new Gradient(colors, startPoints);
+
+        // Create a heat map tile provider, passing it the latlngs of the police stations.
+        mProvider = new HeatmapTileProvider.Builder()
+                .weightedData(list)
+                .gradient(ALT_HEATMAP_GRADIENT)
+                .build();
+        // Add a tile overlay to the map, using the heat map tile provider.
+        mOverlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
+    }
+
+    private ArrayList<WeightedLatLng> readItems(int resource) throws JSONException {
+        ArrayList<WeightedLatLng> list = new ArrayList<WeightedLatLng>();
+        InputStream inputStream = getResources().openRawResource(resource);
+        String json = new Scanner(inputStream).useDelimiter("\\A").next();
+        JSONArray array = new JSONArray(json);
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject object = array.getJSONObject(i);
+            double lat = object.getDouble("lat");
+            double lng = object.getDouble("lng");
+            double intensity = object.getDouble("intensity");
+            list.add(new WeightedLatLng(new LatLng(lat, lng), intensity));
+        }
+        return list;
+    }
+
 
     /**
      * Handles the result of the request for location permissions.
@@ -175,10 +259,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                         if (task.isSuccessful()) {
                             // Set the map's camera position to the current location of the device.
                             mLastKnownLocation = task.getResult();
-                            if(mLastKnownLocation!=null) {
+                            if (mLastKnownLocation != null) {
                                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                        new LatLng(mLastKnownLocation.getLatitude(),
-                                                mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+                                        new LatLng(-37.1886,
+                                                145.708), DEFAULT_ZOOM));
                             }
                         } else {
                             mMap.moveCamera(CameraUpdateFactory
@@ -188,7 +272,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                     }
                 });
             }
-        } catch (SecurityException e)  {
+        } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
         }
     }
@@ -203,8 +287,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
          * onRequestPermissionsResult.
          */
         if (ContextCompat.checkSelfPermission(getContext(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
-        {
+                android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mLocationPermissionGranted = true;
         } else {
             requestPermissions(
@@ -231,7 +314,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 mLastKnownLocation = null;
                 getLocationPermission();
             }
-        } catch (SecurityException e)  {
+        } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
         }
     }
