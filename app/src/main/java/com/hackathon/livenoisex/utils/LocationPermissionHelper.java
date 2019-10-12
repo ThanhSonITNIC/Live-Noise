@@ -1,4 +1,4 @@
-package com.hackathon.livenoisex.sound;
+package com.hackathon.livenoisex.utils;
 
 import android.Manifest;
 import android.app.Activity;
@@ -10,22 +10,22 @@ import android.provider.Settings;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-public class RecordPermissionHelper {
-    private static final int RECORD_PERMISSION_CODE = 0;
-    private static final String RECORD_PERMISSION = Manifest.permission.RECORD_AUDIO;
+public class LocationPermissionHelper {
+    private static final int FINE_LOCATION_CODE = 21;
+    private static final String LOCATION_PERMISSION = Manifest.permission.ACCESS_FINE_LOCATION;
 
-    public static boolean hasRecordPermission(Activity activity) {
-        return ContextCompat.checkSelfPermission(activity, RECORD_PERMISSION)
+    public static boolean hasLocationPermission(Activity activity) {
+        return ContextCompat.checkSelfPermission(activity, LOCATION_PERMISSION)
                 == PackageManager.PERMISSION_GRANTED;
     }
 
-    public static void requestRecordPermission(Activity activity) {
+    public static void requestLocationPermission(Activity activity) {
         ActivityCompat.requestPermissions(
-                activity, new String[] {RECORD_PERMISSION}, RECORD_PERMISSION_CODE);
+                activity, new String[]{LOCATION_PERMISSION}, FINE_LOCATION_CODE);
     }
 
     public static boolean shouldShowRequestPermissionRationale(Activity activity) {
-        return ActivityCompat.shouldShowRequestPermissionRationale(activity, RECORD_PERMISSION);
+        return ActivityCompat.shouldShowRequestPermissionRationale(activity, LOCATION_PERMISSION);
     }
 
     public static void launchPermissionSettings(Activity activity) {

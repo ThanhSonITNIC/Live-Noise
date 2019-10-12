@@ -5,4 +5,11 @@
     <string name="report">Report</string>
     <string name="view_noise_map">View map</string>
     <string name="check">Check</string>
+    <string name="view_map">View map</string>
+    <string name="result_1">Really ?</string>
+    <string name="result_2">Hmm, nothing wrong here.</string>
+    <string name="result_3">It sounds a little noise there</string>
+    <string name="result_4">Sorry, I can\'t hear you.\nDo you need to call police?</string>
+    <string name="create_report_error">Something went wrong</string>
+    <string name="create_report_success">Report completed!</string>
 </resources>

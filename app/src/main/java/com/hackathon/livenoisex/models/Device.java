@@ -5,12 +5,15 @@ import java.util.Map;
 
 public class Device {
     private double latitude;
-    private double longitude;
+    private double longtitude;
     private int insensity;
 
-    public Device(double latitude, double longitude, int insensity){
+    public Device() {
+    }
+
+    public Device(double latitude, double longtitude, int insensity){
         this.latitude = latitude;
-        this.longitude = longitude;
+        this.longtitude = longtitude;
         this.insensity = insensity;
     }
 
@@ -18,8 +21,8 @@ public class Device {
         return latitude;
     }
 
-    public double getLongitude() {
-        return longitude;
+    public double getLongtitude() {
+        return longtitude;
     }
 
     public int getInsensity() {
@@ -28,9 +31,9 @@ public class Device {
 
     public Map toMap(){
         Map<String, Object> map = new HashMap<>();
-        map.put("Insensity", insensity);
-        map.put("Latitude", latitude);
-        map.put("Longitude", longitude);
+        map.put("insensity", insensity);
+        map.put("latitude", latitude);
+        map.put("longtitude", longtitude);
         return map;
     }
 }
