@@ -20,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.main, MapFragment.newInstance())
+                    .replace(R.id.main, com.hackathon.livenoisex.main.MapFragment.newInstance())
                     .commitNow();
         }
 

@@ -1,4 +1,4 @@
-package com.hackathon.livenoise.sound;
+package com.hackathon.livenoisex.sound;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -9,7 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
-import com.hackathon.livenoise.R;
+import com.hackathon.livenoisex.R;
 
 public class DialogResultRecord extends DialogFragment {
 

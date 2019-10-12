@@ -1,4 +1,4 @@
-package com.hackathon.livenoise.sound;
+package com.hackathon.livenoisex.sound;
 
 import android.Manifest;
 import android.app.Activity;

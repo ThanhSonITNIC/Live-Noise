@@ -1,4 +1,4 @@
-package com.hackathon.livenoise.sound;
+package com.hackathon.livenoisex.sound;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,8 +13,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.hackathon.livenoise.R;
-import com.hackathon.livenoise.main.MainActivity;
+import com.hackathon.livenoisex.R;
+import com.hackathon.livenoisex.main.MainActivity;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;

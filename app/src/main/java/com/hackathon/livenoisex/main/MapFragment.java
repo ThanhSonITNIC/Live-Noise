@@ -1,4 +1,4 @@
-package com.hackathon.livenoise.main;
+package com.hackathon.livenoisex.main;
 
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -34,8 +34,8 @@ import com.google.android.libraries.places.compat.Places;
 import com.google.maps.android.heatmaps.Gradient;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 import com.google.maps.android.heatmaps.WeightedLatLng;
-import com.hackathon.livenoise.R;
-import com.hackathon.livenoise.models.MapModel;
+import com.hackathon.livenoisex.R;
+import com.hackathon.livenoisex.models.MapModel;
 
 import org.json.JSONArray;
 import org.json.JSONException;
