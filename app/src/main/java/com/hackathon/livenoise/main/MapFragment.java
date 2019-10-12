@@ -1,13 +1,19 @@
 package com.hackathon.livenoise.main;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -21,9 +27,14 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -43,15 +54,15 @@ import org.json.JSONObject;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.EventListener;
 import java.util.List;
 import java.util.Scanner;
 
-public class MapFragment extends Fragment implements OnMapReadyCallback {
+public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener{
 
     private MapModel mMapModel;
 
-    private GoogleMap mMap;
+    private GoogleMap mMap; // Variable map
+    private Marker marker;
 
     private CameraPosition mCameraPosition;
 
@@ -141,7 +152,28 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        // Add markers to the map and do other map setup.
+        // Set a listener for info window events.
+        mMap.setOnInfoWindowClickListener(this);
 
+        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+                onCreateDialog().show();
+            }
+        });
+
+        final LatLng MELBOURNE = new LatLng(16.07498, 108.2267048); // Address report
+        Marker melbourne = mMap.addMarker(new MarkerOptions()
+                .position(MELBOURNE)
+                .title("Melbourne")
+                .snippet("Population : 1234"));
+
+        Circle circle = mMap.addCircle(new CircleOptions()
+                .center(MELBOURNE)
+                .radius(7)
+                .strokeColor(Color.RED)
+                .fillColor(Color.BLUE));
         // Customise the styling of the base map using a JSON object defined
         // in a raw resource file.
         mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(getContext(), R.raw.style_json));
@@ -248,8 +280,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                             mLastKnownLocation = task.getResult();
                             if (mLastKnownLocation != null) {
                                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                        new LatLng(-37.1886,
-                                                145.708), DEFAULT_ZOOM));
+                                        new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()), DEFAULT_ZOOM)); //Address of Song Han
                             }
                         } else {
                             mMap.moveCamera(CameraUpdateFactory
@@ -306,4 +337,24 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+        Toast.makeText(getActivity(), "Info window clicked",
+                Toast.LENGTH_SHORT).show();
+    }
+
+    public Dialog onCreateDialog(){
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        LayoutInflater inflater = getActivity().getLayoutInflater();
+
+        // Set text
+
+        // Inflate and set the layout for the dialog
+        // Pass null as the parent view because its going in the dialog layout
+        builder.setView(inflater.inflate(R.layout.dialog_resource, null));
+                // Add action buttons;
+        return builder.create();
+    }
 }

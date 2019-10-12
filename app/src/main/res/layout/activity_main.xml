@@ -21,7 +21,9 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <include layout="@layout/content_main" />
+    <include
+        layout="@layout/content_main"
+        android:verticalScrollbarPosition="defaultPosition" />
 
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
