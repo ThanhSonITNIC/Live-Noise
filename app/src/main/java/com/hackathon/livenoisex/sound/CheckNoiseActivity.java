@@ -136,7 +136,12 @@ public class CheckNoiseActivity extends AppCompatActivity {
             @Override
             public void run() {
                 stopRecord();
-                showResult();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        showResult();
+                    }
+                });
             }
         }, 5000);
     }
@@ -149,10 +154,10 @@ public class CheckNoiseActivity extends AppCompatActivity {
         if (decibelValue < 20) {
             tvDecibel.setTextColor(getResources().getColor(R.color.text_color_white));
             txtResult.setText(R.string.result_1);
-        } else if (decibelValue < 80) {
+        } else if (decibelValue < 70) {
             tvDecibel.setTextColor(getResources().getColor(R.color.text_color_blue));
             txtResult.setText(R.string.result_2);
-        } else if (decibelValue < 90) {
+        } else if (decibelValue < 85) {
             btnReport.setVisibility(View.VISIBLE);
             tvDecibel.setTextColor(getResources().getColor(R.color.text_color_orange));
             txtResult.setText(R.string.result_3);

@@ -87,12 +87,6 @@ public class RecordActivity extends AppCompatActivity {
         fragmentManager.beginTransaction()
                 .add(R.id.container, FragmentRecordInfo.newInstance(decibel, latitude, longtitude))
                 .commit();
-        fragmentManager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
-            @Override
-            public void onBackStackChanged() {
-
-            }
-        });
     }
 
     private void onClickBack() {

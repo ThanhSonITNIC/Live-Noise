@@ -1,5 +1,7 @@
 package com.hackathon.livenoisex.main;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -22,8 +24,12 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -31,14 +37,19 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.compat.GeoDataClient;
 import com.google.android.libraries.places.compat.PlaceDetectionClient;
 import com.google.android.libraries.places.compat.Places;
+import com.google.firebase.database.core.Repo;
 import com.google.maps.android.heatmaps.Gradient;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 import com.google.maps.android.heatmaps.WeightedLatLng;
 import com.hackathon.livenoisex.R;
 import com.hackathon.livenoisex.interfaces.DeviceUpdateListener;
 import com.hackathon.livenoisex.interfaces.GetDataListener;
+import com.hackathon.livenoisex.interfaces.GetReportsListener;
+import com.hackathon.livenoisex.interfaces.ReportUpdateListener;
 import com.hackathon.livenoisex.models.Device;
 import com.hackathon.livenoisex.models.MapModel;
+import com.hackathon.livenoisex.models.Report;
+import com.hackathon.livenoisex.models.ReportModel;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -50,7 +61,7 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class MapFragment extends Fragment implements OnMapReadyCallback {
+public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
 
     private MapModel mMapModel;
 
@@ -58,9 +69,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     private CameraPosition mCameraPosition;
 
-    // The entry points to the Places API.
-    private GeoDataClient mGeoDataClient;
-    private PlaceDetectionClient mPlaceDetectionClient;
 
     // The entry point to the Fused Location Provider.
     private FusedLocationProviderClient mFusedLocationProviderClient;
@@ -80,6 +88,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private HeatmapTileProvider mProvider;
     private TileOverlay mOverlay;
     private List<Device> mDeviceList;
+    private List<Report> mReportList;
+    private List<Marker> mReportMakerList;
     private float mZoom = DEFAULT_ZOOM;
 
 
@@ -99,11 +109,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         mMapModel = new MapModel();
 
-        // Construct a GeoDataClient.
-        mGeoDataClient = Places.getGeoDataClient(getActivity());
-
-        // Construct a PlaceDetectionClient.
-        mPlaceDetectionClient = Places.getPlaceDetectionClient(getActivity());
 
         // Construct a FusedLocationProviderClient.
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(getActivity());
@@ -158,6 +163,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+        // Add markers to the map and do other map setup.
+        // Set a listener for info window events.
+        mMap.setOnInfoWindowClickListener(this);
+
+        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+                onCreateDialog().show();
+            }
+        });
+
+
         // Customise the styling of the base map using a JSON object defined
         // in a raw resource file.
         mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(getContext(), R.raw.style_json));
@@ -180,6 +197,76 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         getSoundData();
 
+        getReportData();
+
+    }
+
+    private void getReportData() {
+        ReportModel reportModel = new ReportModel();
+        reportModel.firstRead(new GetReportsListener() {
+            @Override
+            public void onGetReportsSuccess(List<Report> reports) {
+                mReportList = reports;
+            }
+
+            @Override
+            public void onGetReportsFailure() {
+
+            }
+        });
+
+        reportModel.addOnDataUpdate(new ReportUpdateListener() {
+            @Override
+            public void onAdded(Report report) {
+                if (mReportList == null) {
+                    mReportList = new CopyOnWriteArrayList<>();
+                }
+                mReportList.add(report);
+                updateReportMarkers();
+            }
+
+            @Override
+            public void onModified(Report report) {
+                for (int i = 0, n = mReportList.size(); i < n; ++i) {
+                    Report report1 = mReportList.get(i);
+                    if (report1.getLatitude() == report.getLatitude() && report1.getLongtitude() == report.getLongtitude()) {
+                        mReportList.set(i, report);
+                        break;
+                    }
+                }
+                updateReportMarkers();
+            }
+
+            @Override
+            public void onRemoved(Report report) {
+                for (int i = 0, n = mReportList.size(); i < n; ++i) {
+                    Report report1 = mReportList.get(i);
+                    if (report1.getLatitude() == report.getLatitude() && report1.getLongtitude() == report.getLongtitude()) {
+                        mReportList.remove(i);
+                        break;
+                    }
+                }
+                updateReportMarkers();
+            }
+        });
+    }
+
+    private void updateReportMarkers() {
+        if (mReportList == null || mReportList.size() == 0) {
+            return;
+        }
+        if(mReportMakerList!=null){
+            for (Marker marker: mReportMakerList){
+                marker.remove();
+            }
+        }
+        mReportMakerList = new CopyOnWriteArrayList<>();
+        for (int i = 0, n = mReportList.size(); i < n; ++i) {
+            Report report = mReportList.get(i);
+            mReportMakerList.add(mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(report.getLatitude(),
+                            report.getLongtitude()))));
+        }
     }
 
     private void getSoundData() {
@@ -246,7 +333,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         mProvider = new HeatmapTileProvider.Builder()
                 .weightedData(weightedLatLngList)
                 .gradient(gradient)
-                .radius(50 - (int)mZoom)
+                .radius(50 - (int) mZoom)
                 .build();
         // Add a tile overlay to the map, using the heat map tile provider.
         mOverlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
@@ -360,4 +447,22 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+
+    }
+
+    public Dialog onCreateDialog() {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        LayoutInflater inflater = getActivity().getLayoutInflater();
+
+        // Set text
+
+        // Inflate and set the layout for the dialog
+        // Pass null as the parent view because its going in the dialog layout
+        builder.setView(inflater.inflate(R.layout.dialog_resource, null));
+        // Add action buttons;
+        return builder.create();
+    }
 }
