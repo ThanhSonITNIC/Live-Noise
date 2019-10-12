@@ -1,13 +1,13 @@
-package com.hackathon.livenoise.main;
+package com.hackathon.livenoisex.main;
 
 import android.os.Bundle;
 
-import com.hackathon.livenoise.R;
+import com.hackathon.livenoisex.R;
+import com.hackathon.livenoisex.models.SoundModel;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
     }
 
     @Override
@@ -49,4 +50,5 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
 }

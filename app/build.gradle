@@ -4,7 +4,7 @@ apply plugin: 'com.google.gms.google-services'
 android {
     compileSdkVersion 28
     defaultConfig {
-        applicationId "com.hackathon.livenoise"
+        applicationId "com.hackathon.livenoisex"
         minSdkVersion 22
         targetSdkVersion 28
         versionCode 1
@@ -36,3 +36,5 @@ dependencies {
     implementation 'com.google.maps.android:android-maps-utils:0.5'
 
 }
+
+apply plugin: 'com.google.gms.google-services'
