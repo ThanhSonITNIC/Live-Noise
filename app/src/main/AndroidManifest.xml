@@ -16,7 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar">
 
-        <activity android:name=".sound.RecordActivity" >
+        <activity android:name=".sound.CheckNoiseActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -28,6 +28,7 @@
             android:label="@string/app_name">
 
         </activity>
+        <activity android:name=".record.RecordActivity" />
 
 
         <meta-data
