@@ -13,10 +13,9 @@
         android:id="@+id/tv_decibel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/loading"
+        android:text="zZ..zZ.."
         android:textColor="@color/text_color_white"
         android:textSize="24sp"
-        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@+id/progressBar"
         app:layout_constraintEnd_toEndOf="@+id/progressBar"
         app:layout_constraintStart_toStartOf="@+id/progressBar"
@@ -29,6 +28,7 @@
         android:layout_height="240dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_bias="0.4"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -64,21 +64,34 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/txt_result"/>
 
-
     <TextView
         android:id="@+id/btn_action"
         android:layout_width="160dp"
         android:layout_height="48dp"
         android:layout_marginTop="88dp"
-        android:background="@drawable/bg_button_white"
+        android:background="@drawable/bg_button_black"
         android:gravity="center"
         android:text="@string/check"
-        android:textColor="@color/text_color_black"
+        android:textColor="@color/text_color_white"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:indeterminateDrawable="@drawable/progress"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/progressBar" />
+
+    <TextView
+        android:id="@+id/btn_view_map"
+        android:layout_width="160dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="16dp"
+        android:visibility="visible"
+        android:gravity="center"
+        android:text="@string/view_map"
+        android:textColor="@color/text_color_black"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_action" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

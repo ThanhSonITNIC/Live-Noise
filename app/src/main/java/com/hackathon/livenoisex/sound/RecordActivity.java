@@ -1,13 +1,9 @@
 package com.hackathon.livenoisex.sound;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,21 +16,17 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.hackathon.livenoisex.R;
 import com.hackathon.livenoisex.main.MainActivity;
 import com.hackathon.livenoisex.models.Device;
 import com.hackathon.livenoisex.models.SoundModel;
-import com.hackathon.livenoisex.utils.LocationPermissionHelper;
 import com.hackathon.livenoisex.utils.RecordPermissionHelper;
 
 import java.util.List;
@@ -43,7 +35,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class RecordActivity extends AppCompatActivity {
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 22;
     private ProgressBar progressBar;
-    private TextView tvDecibel, btnAction, txtResult, btnReport;
+    private TextView tvDecibel, btnAction, txtResult, btnReport, btnViewMap;
     private SoundMeter soundMeter = null;
     private GetSoundThread getSoundThread;
     private List<Double> decibelBuffer = new CopyOnWriteArrayList<>();
@@ -62,6 +54,7 @@ public class RecordActivity extends AppCompatActivity {
         btnAction = findViewById(R.id.btn_action);
         txtResult = findViewById(R.id.txt_result);
         btnReport = findViewById(R.id.btn_report);
+        btnViewMap = findViewById(R.id.btn_view_map);
 
 
         btnAction.setOnClickListener(new View.OnClickListener() {
@@ -70,7 +63,12 @@ public class RecordActivity extends AppCompatActivity {
                 startRecord();
             }
         });
-
+        btnViewMap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(RecordActivity.this, MainActivity.class));
+            }
+        });
         if (!RecordPermissionHelper.hasRecordPermission(this)) {
             RecordPermissionHelper.requestRecordPermission(this);
         }
@@ -82,10 +80,6 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     private void getDeviceLocation() {
-        /*
-         * Get the best and most recent location of the device, which may be null in rare
-         * cases when a location is not available.
-         */
         try {
             if (mLocationPermissionGranted) {
                 Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
@@ -110,9 +104,13 @@ public class RecordActivity extends AppCompatActivity {
             RecordPermissionHelper.requestRecordPermission(this);
             return;
         }
-
+        btnAction.setClickable(false);
         progressBar.setVisibility(View.VISIBLE);
-        tvDecibel.setVisibility(View.VISIBLE);
+        txtResult.setVisibility(View.GONE);
+        progressBar.setVisibility(View.VISIBLE);
+        tvDecibel.setText(R.string.loading);
+        tvDecibel.setTextSize(24);
+        tvDecibel.setTextColor(getResources().getColor(R.color.text_color_white));
 
         if (soundMeter == null) {
             soundMeter = new SoundMeter();
@@ -137,24 +135,34 @@ public class RecordActivity extends AppCompatActivity {
         progressBar.setVisibility(View.INVISIBLE);
         txtResult.setVisibility(View.VISIBLE);
         int decibelValue = (int) getDecibelValue();
+
+        if (decibelValue < 20) {
+            tvDecibel.setTextColor(getResources().getColor(R.color.text_color_white));
+            txtResult.setText(R.string.result_1);
+        } else if (decibelValue < 80) {
+            tvDecibel.setTextColor(getResources().getColor(R.color.text_color_blue));
+            txtResult.setText(R.string.result_2);
+        } else if (decibelValue < 90) {
+            btnReport.setVisibility(View.VISIBLE);
+            tvDecibel.setTextColor(getResources().getColor(R.color.text_color_orange));
+            txtResult.setText(R.string.result_3);
+        } else {
+            btnReport.setVisibility(View.VISIBLE);
+            txtResult.setText(R.string.result_4);
+            tvDecibel.setTextColor(getResources().getColor(R.color.text_color_red));
+        }
+
         tvDecibel.setText(decibelValue + "");
 
-        btnReport.setVisibility(View.VISIBLE);
-        btnReport.setClickable(true);
         btnReport.setMovementMethod(LinkMovementMethod.getInstance());
         String text = "<a href='http://www.google.com'> Report </a>";
         btnReport.setText(Html.fromHtml(text));
 
-        btnAction.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(RecordActivity.this, MainActivity.class));
-                finish();
-            }
-        });
-        btnAction.setText(R.string.view_noise_map);
+        btnViewMap.setVisibility(View.VISIBLE);
+
+        btnAction.setClickable(true);
         if (mLastKnownLocation != null) {
-            soundModel.writeInsentity(new Device(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude(), decibelValue));
+            soundModel.addInsensity(new Device(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude(), decibelValue));
         }
     }
 
@@ -168,11 +176,6 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     private void getLocationPermission() {
-        /*
-         * Request location permission, so that we can get the location of the
-         * device. The result of the permission request is handled by a callback,
-         * onRequestPermissionsResult.
-         */
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mLocationPermissionGranted = true;
@@ -213,6 +216,7 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     private void stopRecord() {
+        btnAction.setClickable(true);
         if (soundMeter != null) {
             soundMeter.stop();
         }

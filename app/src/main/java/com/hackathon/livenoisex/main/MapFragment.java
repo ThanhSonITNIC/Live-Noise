@@ -80,6 +80,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private HeatmapTileProvider mProvider;
     private TileOverlay mOverlay;
     private List<Device> mDeviceList;
+    private float mZoom = DEFAULT_ZOOM;
 
 
     public static MapFragment newInstance() {
@@ -160,7 +161,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         // Customise the styling of the base map using a JSON object defined
         // in a raw resource file.
         mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(getContext(), R.raw.style_json));
-
+        mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
+            @Override
+            public void onCameraChange(CameraPosition cameraPosition) {
+                if (mZoom != cameraPosition.zoom) {
+                    addHeatMap();
+                }
+            }
+        });
         // Prompt the user for permission.
         getLocationPermission();
 
@@ -215,7 +223,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         if (mDeviceList == null) {
             return;
         }
-        if(mOverlay!=null){
+        if (mOverlay != null) {
             mOverlay.remove();
         }
         List<WeightedLatLng> weightedLatLngList = new CopyOnWriteArrayList<>();
@@ -238,7 +246,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         mProvider = new HeatmapTileProvider.Builder()
                 .weightedData(weightedLatLngList)
                 .gradient(gradient)
-                .radius(40)
+                .radius(50 - (int)mZoom)
                 .build();
         // Add a tile overlay to the map, using the heat map tile provider.
         mOverlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
