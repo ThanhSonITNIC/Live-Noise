@@ -28,7 +28,6 @@ import com.google.android.libraries.places.compat.GeoDataClient;
 import com.google.android.libraries.places.compat.PlaceDetectionClient;
 import com.google.android.libraries.places.compat.Places;
 import com.hackathon.livenoise.R;
-import com.hackathon.livenoise.interfaces.MapInterface;
 import com.hackathon.livenoise.models.MapModel;
 
 import java.util.EventListener;
