@@ -8,7 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -35,6 +35,9 @@ import com.google.maps.android.heatmaps.Gradient;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 import com.google.maps.android.heatmaps.WeightedLatLng;
 import com.hackathon.livenoisex.R;
+import com.hackathon.livenoisex.interfaces.DeviceUpdateListener;
+import com.hackathon.livenoisex.interfaces.GetDataListener;
+import com.hackathon.livenoisex.models.Device;
 import com.hackathon.livenoisex.models.MapModel;
 
 import org.json.JSONArray;
@@ -43,9 +46,9 @@ import org.json.JSONObject;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.EventListener;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback {
 
@@ -65,7 +68,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     // A default location (Da Nang, Viet Nam) and default zoom to use when location permission is not granted.
     private final LatLng mDefaultLocation = new LatLng(16.071661, 108.223093);
     private static final int DEFAULT_ZOOM = 14;
-    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 31;
     private boolean mLocationPermissionGranted;
 
     // The geographical location where the device is currently located. That is, the last-known location retrieved by the Fused Location Provider.
@@ -76,6 +79,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private static final String KEY_LOCATION = "location";
     private HeatmapTileProvider mProvider;
     private TileOverlay mOverlay;
+    private List<Device> mDeviceList;
+    private float mZoom = DEFAULT_ZOOM;
 
 
     public static MapFragment newInstance() {
@@ -92,6 +97,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
         }
 
+        mMapModel = new MapModel();
+
         // Construct a GeoDataClient.
         mGeoDataClient = Places.getGeoDataClient(getActivity());
 
@@ -100,6 +107,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         // Construct a FusedLocationProviderClient.
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(getActivity());
+
 
     }
 
@@ -116,6 +124,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     }
 
+    private ImageView btnRefresh;
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -123,7 +133,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 .findFragmentById(R.id.map);
 
         mapFragment.getMapAsync(this);
-
+        btnRefresh = view.findViewById(R.id.btn_refresh);
+        btnRefresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getSoundData();
+            }
+        });
     }
 
     /**
@@ -145,7 +161,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         // Customise the styling of the base map using a JSON object defined
         // in a raw resource file.
         mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(getContext(), R.raw.style_json));
-
+        mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
+            @Override
+            public void onCameraChange(CameraPosition cameraPosition) {
+                if (mZoom != cameraPosition.zoom) {
+                    addHeatMap();
+                }
+            }
+        });
         // Prompt the user for permission.
         getLocationPermission();
 
@@ -160,21 +183,55 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void getSoundData() {
-        addHeatMap();
+        mMapModel.firstRead(new GetDataListener() {
+            @Override
+            public void onGetDataSuccess(List<Device> devices) {
+                if (devices != null) {
+                    mDeviceList = devices;
+                    addHeatMap();
+                } else {
+                    mDeviceList = new CopyOnWriteArrayList<>();
+                }
+
+            }
+        });
+
+        mMapModel.addOnDataUpdate(new DeviceUpdateListener() {
+            @Override
+            public void onAdded(Device device) {
+                if (mDeviceList == null) {
+                    mDeviceList = new CopyOnWriteArrayList<>();
+                }
+                mDeviceList.add(device);
+                addHeatMap();
+            }
+
+            @Override
+            public void onModified(int oldindex, Device newDevice) {
+
+            }
+
+            @Override
+            public void onRemoved(int oldindex) {
+
+            }
+        });
     }
 
 
-    private void addHeatMap() {
-        List<WeightedLatLng> list = null;
-
-        // Get the data: latitude/longitude positions of police stations.
-        try {
-            list = readItems(R.raw.police_stations);
-        } catch (JSONException e) {
-            Toast.makeText(getActivity(), "Problem reading list of locations.", Toast.LENGTH_LONG).show();
+    public void addHeatMap() {
+        if (mDeviceList == null) {
             return;
         }
-
+        if (mOverlay != null) {
+            mOverlay.remove();
+        }
+        List<WeightedLatLng> weightedLatLngList = new CopyOnWriteArrayList<>();
+        for (Device device : mDeviceList) {
+            WeightedLatLng weightedLatLng = new WeightedLatLng(new LatLng(device.getLatitude(), device.getLongtitude()),
+                    device.getInsensity());
+            weightedLatLngList.add(weightedLatLng);
+        }
         int[] colors = {
                 Color.rgb(102, 225, 0), // green
                 Color.rgb(255, 0, 0)    // red
@@ -187,9 +244,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         // Create a heat map tile provider, passing it the latlngs of the police stations.
         mProvider = new HeatmapTileProvider.Builder()
-                .weightedData(list)
+                .weightedData(weightedLatLngList)
                 .gradient(gradient)
-                .radius(40)
+                .radius(50 - (int)mZoom)
                 .build();
         // Add a tile overlay to the map, using the heat map tile provider.
         mOverlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
@@ -243,14 +300,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 locationResult.addOnCompleteListener(getActivity(), new OnCompleteListener<Location>() {
                     @Override
                     public void onComplete(@NonNull Task<Location> task) {
-                        if (task.isSuccessful()) {
+                        if (task.isSuccessful() && task.getResult() != null) {
                             // Set the map's camera position to the current location of the device.
                             mLastKnownLocation = task.getResult();
-                            if (mLastKnownLocation != null) {
-                                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                        new LatLng(-37.1886,
-                                                145.708), DEFAULT_ZOOM));
-                            }
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                                    new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
                         } else {
                             mMap.moveCamera(CameraUpdateFactory
                                     .newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
@@ -294,7 +348,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         try {
             if (mLocationPermissionGranted) {
                 mMap.setMyLocationEnabled(true);
-                mMap.getUiSettings().setMyLocationButtonEnabled(true);
+                mMap.getUiSettings().setMyLocationButtonEnabled(false);
             } else {
                 mMap.setMyLocationEnabled(false);
                 mMap.getUiSettings().setMyLocationButtonEnabled(false);
