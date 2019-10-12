@@ -163,20 +163,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         addHeatMap();
     }
 
-    private static final int[] ALT_HEATMAP_GRADIENT_COLORS = {
-            Color.argb(0, 255, 0, 0),// transparent
-            Color.argb(50, 255, 0, 0),// transparent
-            Color.argb(125, 255, 0, 0),// transparent
-            Color.argb(255, 255, 0, 0)// transparent
-    };
-
-    public static final float[] ALT_HEATMAP_GRADIENT_START_POINTS = {
-            0.0f, 0.50f,1.0f, 2.0f
-    };
-
-    public static final Gradient ALT_HEATMAP_GRADIENT = new Gradient(ALT_HEATMAP_GRADIENT_COLORS,
-            ALT_HEATMAP_GRADIENT_START_POINTS);
-
 
     private void addHeatMap() {
         List<WeightedLatLng> list = null;
@@ -202,7 +188,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         // Create a heat map tile provider, passing it the latlngs of the police stations.
         mProvider = new HeatmapTileProvider.Builder()
                 .weightedData(list)
-                .gradient(ALT_HEATMAP_GRADIENT)
+                .gradient(gradient)
+                .radius(40)
                 .build();
         // Add a tile overlay to the map, using the heat map tile provider.
         mOverlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
