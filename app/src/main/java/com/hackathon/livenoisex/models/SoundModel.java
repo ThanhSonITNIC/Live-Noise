@@ -22,15 +22,10 @@ public class SoundModel extends FirebaseDatabase {
 
     }
 
-    public void writeInsentity(int insensity, double latitude, double longitude){
-        GeoPoint geoPoint = new GeoPoint(latitude, longitude);
-        Map<String, Object> data = new HashMap<>();
-        data.put("Location", geoPoint);
-        data.put("Insensity", insensity);
-
+    public void writeInsentity(Device device){
         // Add a new document with a generated ID
         db.collection(COLLECTION_NAME)
-            .add(data)
+            .add(device.toMap())
             .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                 @Override
                 public void onSuccess(DocumentReference documentReference) {
@@ -45,14 +40,9 @@ public class SoundModel extends FirebaseDatabase {
             });
     }
 
-    public void updateInsensity(int insensity, double latitude, double longitude){
-        GeoPoint geoPoint = new GeoPoint(latitude, longitude);
-        Map<String, Object> data = new HashMap<>();
-        data.put("Location", geoPoint);
-        data.put("Insensity", insensity);
-
+    public void updateInsensity(Device device){
         db.collection(COLLECTION_NAME).document(idDevice)
-            .update(data)
+            .update(device.toMap())
             .addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) {

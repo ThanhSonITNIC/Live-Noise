@@ -30,8 +30,8 @@ public class MapModel extends FirebaseDatabase{
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 QuerySnapshot documentSnapshot = task.getResult();
-                List<DocumentSnapshot> snapshotList = documentSnapshot.getDocuments();
-                listener.onGetDataSuccess(snapshotList);
+                List<Device> devices = documentSnapshot.toObjects(Device.class);
+                listener.onGetDataSuccess(devices);
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -55,13 +55,13 @@ public class MapModel extends FirebaseDatabase{
                     for (DocumentChange dc : snapshots.getDocumentChanges()) {
                         switch (dc.getType()) {
                             case ADDED:
-                                deviceUpdateListener.onAdded();
+                                deviceUpdateListener.onAdded(dc.getDocument().toObject(Device.class));
                                 break;
                             case MODIFIED:
-                                deviceUpdateListener.onModified();
+                                deviceUpdateListener.onModified(dc.getOldIndex(), dc.getDocument().toObject(Device.class));
                                 break;
                             case REMOVED:
-                                deviceUpdateListener.onRemoved();
+                                deviceUpdateListener.onRemoved(dc.getOldIndex());
                                 break;
                         }
                     }

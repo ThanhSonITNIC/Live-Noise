@@ -1,9 +1,11 @@
 package com.hackathon.livenoisex.interfaces;
 
+import com.hackathon.livenoisex.models.Device;
+
 public interface DeviceUpdateListener {
-    void onAdded();
+    void onAdded(Device device);
 
-    void onModified();
+    void onModified(int oldindex, Device newDevice);
 
-    void onRemoved();
+    void onRemoved(int oldindex);
 }
