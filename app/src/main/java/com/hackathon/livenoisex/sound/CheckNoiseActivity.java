@@ -27,12 +27,13 @@ import com.hackathon.livenoisex.R;
 import com.hackathon.livenoisex.main.MainActivity;
 import com.hackathon.livenoisex.models.Device;
 import com.hackathon.livenoisex.models.SoundModel;
+import com.hackathon.livenoisex.record.RecordActivity;
 import com.hackathon.livenoisex.utils.RecordPermissionHelper;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class RecordActivity extends AppCompatActivity {
+public class CheckNoiseActivity extends AppCompatActivity {
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 22;
     private ProgressBar progressBar;
     private TextView tvDecibel, btnAction, txtResult, btnReport, btnViewMap;
@@ -43,11 +44,12 @@ public class RecordActivity extends AppCompatActivity {
     private SoundModel soundModel = new SoundModel();
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private boolean mLocationPermissionGranted;
+    private int decibelValue;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_recorder);
+        setContentView(R.layout.activity_check_noise);
 
         progressBar = findViewById(R.id.progressBar);
         tvDecibel = findViewById(R.id.tv_decibel);
@@ -56,6 +58,14 @@ public class RecordActivity extends AppCompatActivity {
         btnReport = findViewById(R.id.btn_report);
         btnViewMap = findViewById(R.id.btn_view_map);
 
+        btnReport.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(RecordActivity.getStartIntent(CheckNoiseActivity.this,
+                        decibelValue,
+                        mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()));
+            }
+        });
 
         btnAction.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -66,7 +76,7 @@ public class RecordActivity extends AppCompatActivity {
         btnViewMap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(RecordActivity.this, MainActivity.class));
+                startActivity(new Intent(CheckNoiseActivity.this, MainActivity.class));
             }
         });
         if (!RecordPermissionHelper.hasRecordPermission(this)) {
@@ -134,7 +144,7 @@ public class RecordActivity extends AppCompatActivity {
     public void showResult() {
         progressBar.setVisibility(View.INVISIBLE);
         txtResult.setVisibility(View.VISIBLE);
-        int decibelValue = (int) getDecibelValue();
+        decibelValue = (int) getDecibelValue();
 
         if (decibelValue < 20) {
             tvDecibel.setTextColor(getResources().getColor(R.color.text_color_white));
