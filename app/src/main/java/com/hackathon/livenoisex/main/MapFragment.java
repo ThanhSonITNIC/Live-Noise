@@ -1,4 +1,4 @@
-package com.hackathon.livenoise.main;
+package com.hackathon.livenoisex.main;
 
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -27,14 +27,9 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.compat.GeoDataClient;
 import com.google.android.libraries.places.compat.PlaceDetectionClient;
 import com.google.android.libraries.places.compat.Places;
-import com.hackathon.livenoise.R;
-import com.hackathon.livenoise.models.MapModel;
-
-import java.util.EventListener;
+import com.hackathon.livenoisex.R;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback {
-
-    private MapModel mMapModel;
 
     private GoogleMap mMap;
 

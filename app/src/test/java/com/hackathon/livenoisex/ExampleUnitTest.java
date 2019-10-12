@@ -1,4 +1,4 @@
-package com.hackathon.livenoise;
+package com.hackathon.livenoisex;
 
 import org.junit.Test;
 
