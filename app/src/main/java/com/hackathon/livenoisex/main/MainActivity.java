@@ -1,8 +1,10 @@
 package com.hackathon.livenoisex.main;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import com.hackathon.livenoisex.R;
+import com.hackathon.livenoisex.forceground.DeepSoundListener;
 import com.hackathon.livenoisex.models.SoundModel;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
 //
 //        Toolbar toolbar = findViewById(R.id.toolbar);
 //        setSupportActionBar(toolbar);
+
 
     }
 

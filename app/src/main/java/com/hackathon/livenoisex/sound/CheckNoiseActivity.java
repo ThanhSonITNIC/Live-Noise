@@ -1,6 +1,8 @@
 package com.hackathon.livenoisex.sound;
 
 import android.Manifest;
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -16,6 +18,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
@@ -24,6 +27,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.hackathon.livenoisex.R;
+import com.hackathon.livenoisex.forceground.DeepSoundListener;
 import com.hackathon.livenoisex.main.MainActivity;
 import com.hackathon.livenoisex.models.Device;
 import com.hackathon.livenoisex.models.SoundModel;
@@ -40,12 +44,13 @@ public class CheckNoiseActivity extends AppCompatActivity {
     private SoundMeter soundMeter = null;
     private GetSoundThread getSoundThread;
     private List<Double> decibelBuffer = new CopyOnWriteArrayList<>();
-    private Location mLastKnownLocation;
+    public Location mLastKnownLocation;
     private SoundModel soundModel = new SoundModel();
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private boolean mLocationPermissionGranted;
     private int decibelValue;
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,11 +90,9 @@ public class CheckNoiseActivity extends AppCompatActivity {
         getLocationPermission();
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         getDeviceLocation();
-
-
     }
 
-    private void getDeviceLocation() {
+    public void getDeviceLocation() {
         try {
             if (mLocationPermissionGranted) {
                 Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
@@ -99,7 +102,7 @@ public class CheckNoiseActivity extends AppCompatActivity {
                         if (task.isSuccessful() && task.getResult() != null) {
                             // Set the map's camera position to the current location of the device.
                             mLastKnownLocation = task.getResult();
-
+                            DeepSoundListener.location = mLastKnownLocation;
                         }
                     }
                 });
@@ -172,7 +175,8 @@ public class CheckNoiseActivity extends AppCompatActivity {
 
         btnAction.setClickable(true);
         if (mLastKnownLocation != null) {
-            soundModel.addInsensity(new Device(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude(), decibelValue));
+            Device device = new Device(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude(), decibelValue);
+            soundModel.addInsensity(device);
         }
     }
 
@@ -198,7 +202,6 @@ public class CheckNoiseActivity extends AppCompatActivity {
             }
         }
     }
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

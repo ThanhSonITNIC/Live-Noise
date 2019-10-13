@@ -1,5 +1,6 @@
 package com.hackathon.livenoisex.main;
 
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -35,6 +36,7 @@ import com.google.maps.android.heatmaps.Gradient;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 import com.google.maps.android.heatmaps.WeightedLatLng;
 import com.hackathon.livenoisex.R;
+import com.hackathon.livenoisex.forceground.DeepSoundListener;
 import com.hackathon.livenoisex.interfaces.DeviceUpdateListener;
 import com.hackathon.livenoisex.interfaces.GetDataListener;
 import com.hackathon.livenoisex.models.Device;
@@ -108,8 +110,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         // Construct a FusedLocationProviderClient.
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(getActivity());
 
-
+        Intent serviceIntent = new Intent(getContext(), DeepSoundListener.class);
+        ContextCompat.startForegroundService(getContext(), serviceIntent);
     }
+
+
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
