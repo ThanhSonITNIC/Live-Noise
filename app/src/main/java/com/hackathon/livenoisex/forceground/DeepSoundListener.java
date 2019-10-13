@@ -41,7 +41,7 @@ public class DeepSoundListener extends Service {
     private Device device;
     public static Location location;
 
-    public DeepSoundListener(){
+    public DeepSoundListener() {
 
     }
 
@@ -96,20 +96,22 @@ public class DeepSoundListener extends Service {
         // update
         new CountDownTimer(Long.MAX_VALUE, 30000) {
             public void onTick(long millisUntilFinished) {
-                new CountDownTimer(29 * 1000, 1000){
+                new CountDownTimer(29 * 1000, 1000) {
 
                     @Override
                     public void onTick(long millisUntilFinished) {
                         int i = (int) soundMeter.getDecibel();
-                        if(i > 0){
+                        if (i > 0) {
                             intensities.add(i);
                         }
                     }
 
                     @Override
                     public void onFinish() {
-                        device = new Device(location.getLatitude(), location.getLongitude(), (int) calculateAverage(intensities));
-                        soundModel.updateInsensity(device);
+                        if (location != null) {
+                            device = new Device(location.getLatitude(), location.getLongitude(), (int) calculateAverage(intensities));
+                            soundModel.updateInsensity(device);
+                        }
                         intensities.clear();
                     }
                 }.start();
@@ -122,9 +124,9 @@ public class DeepSoundListener extends Service {
 
     }
 
-    private double calculateAverage(List <Integer> marks) {
+    private double calculateAverage(List<Integer> marks) {
         Integer sum = 0;
-        if(!marks.isEmpty()) {
+        if (!marks.isEmpty()) {
             for (Integer mark : marks) {
                 sum += mark;
             }
