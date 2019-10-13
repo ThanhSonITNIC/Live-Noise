@@ -24,16 +24,53 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintWidth_percent="0.5" />
 
+    <com.gauravk.audiovisualizer.visualizer.WaveVisualizer xmlns:custom="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/wave"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        custom:avColor="@color/av_dark_blue"
+        custom:avDensity="0.8"
+        custom:avSpeed="normal"
+        custom:avType="fill"
+        custom:layout_constraintTop_toBottomOf="@id/location" />
+
+    <ImageView
+        android:id="@+id/btn_start"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:src="@drawable/ic_play_arrow_black_24dp"
+        app:layout_constraintEnd_toStartOf="@id/btn_stop"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/wave" />
+
+    <ImageView
+        android:id="@+id/btn_stop"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:src="@drawable/ic_stop"
+        app:layout_constraintBottom_toBottomOf="@id/btn_start"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/btn_start" />
+
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/group_media"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:constraint_referenced_ids="btn_start,btn_stop,wave" />
+
     <TextView
         android:id="@+id/numberPhone"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:padding="10dp"
         android:text="Number Phone"
         android:textColor="@color/text_color_black"
         android:textSize="16sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/location"
+        app:layout_constraintTop_toBottomOf="@id/btn_start"
         app:layout_constraintWidth_percent="0.5" />
 
     <TextView
@@ -80,8 +117,8 @@
         android:gravity="right"
         android:padding="10dp"
         android:text="Number Phone"
+        app:layout_constraintBottom_toBottomOf="@id/numberPhone"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/location"
         app:layout_constraintWidth_percent="0.5" />
 
     <TextView
@@ -109,16 +146,16 @@
         app:layout_constraintWidth_percent="0.5" />
 
     <TextView
+        android:id="@+id/btn_close"
         android:layout_width="112dp"
         android:layout_height="48dp"
         android:layout_margin="16dp"
-        android:paddingRight="16dp"
         android:background="@drawable/bg_btn_red"
         android:drawableLeft="@drawable/ic_close"
         android:gravity="center"
         android:paddingLeft="12dp"
+        android:paddingRight="16dp"
         android:text="Close"
-        android:id="@+id/btn_close"
         android:textColor="@color/text_color_white"
         android:textSize="20sp"
         android:textStyle="bold"
@@ -126,16 +163,16 @@
         app:layout_constraintTop_toBottomOf="@id/tv_desc" />
 
     <TextView
+        android:id="@+id/btn_call"
         android:layout_width="112dp"
         android:layout_height="48dp"
         android:layout_margin="16dp"
-        android:paddingRight="16dp"
         android:background="@drawable/bg_btn_green"
         android:drawableLeft="@drawable/ic_call_black_24dp"
         android:gravity="center"
         android:paddingLeft="16dp"
+        android:paddingRight="16dp"
         android:text="Call"
-        android:id="@+id/btn_call"
         android:textColor="@color/text_color_white"
         android:textSize="20sp"
         android:textStyle="bold"

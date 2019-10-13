@@ -5,6 +5,8 @@ import java.util.Map;
 
 public class Report {
     private String phone;
+
+    private String url;
     private String description;
     private int decibel;
     private double latitude;
@@ -13,12 +15,21 @@ public class Report {
     public Report() {
     }
 
-    public Report(String phone, String description, int decibel, double latitude, double longtitude) {
+    public Report(String phone, String url, String description, int decibel, double latitude, double longtitude) {
         this.phone = phone;
+        this.url = url;
         this.description = description;
         this.decibel = decibel;
         this.latitude = latitude;
         this.longtitude = longtitude;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public String getPhone() {
@@ -65,6 +76,7 @@ public class Report {
         Map<String, Object> map = new HashMap<>();
         map.put("phone", phone);
         map.put("description", description);
+        map.put("url", url);
         map.put("decibel", decibel);
         map.put("latitude", latitude);
         map.put("longtitude", longtitude);

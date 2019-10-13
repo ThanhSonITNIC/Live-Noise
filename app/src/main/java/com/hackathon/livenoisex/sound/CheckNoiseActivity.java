@@ -30,6 +30,7 @@ import com.hackathon.livenoisex.models.SoundModel;
 import com.hackathon.livenoisex.record.RecordActivity;
 import com.hackathon.livenoisex.utils.RecordPermissionHelper;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -39,7 +40,7 @@ public class CheckNoiseActivity extends AppCompatActivity {
     private TextView tvDecibel, btnAction, txtResult, btnReport, btnViewMap;
     private SoundMeter soundMeter = null;
     private GetSoundThread getSoundThread;
-    private List<Double> decibelBuffer = new CopyOnWriteArrayList<>();
+    private List<Double> decibelBuffer = new ArrayList<>();
     private Location mLastKnownLocation;
     private SoundModel soundModel = new SoundModel();
     private FusedLocationProviderClient mFusedLocationProviderClient;
@@ -61,9 +62,20 @@ public class CheckNoiseActivity extends AppCompatActivity {
         btnReport.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(RecordActivity.getStartIntent(CheckNoiseActivity.this,
-                        decibelValue,
-                        mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()));
+                if(mLastKnownLocation!=null) {
+                    startActivity(RecordActivity.getStartIntent(CheckNoiseActivity.this,
+                            decibelValue,
+                            mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()));
+                } else {
+                    getDeviceLocation(new OnLocationUpdate() {
+                        @Override
+                        public void onLocationUpdate(Location location) {
+                            startActivity(RecordActivity.getStartIntent(CheckNoiseActivity.this,
+                                    decibelValue,
+                                    mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()));
+                        }
+                    });
+                }
             }
         });
 
@@ -84,22 +96,26 @@ public class CheckNoiseActivity extends AppCompatActivity {
         }
         getLocationPermission();
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        getDeviceLocation();
+
 
 
     }
 
-    private void getDeviceLocation() {
+    public interface OnLocationUpdate{
+        void onLocationUpdate(Location location);
+    }
+
+    private void getDeviceLocation(final OnLocationUpdate onLocationUpdate) {
         try {
             if (mLocationPermissionGranted) {
-                Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
+                final Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
                 locationResult.addOnCompleteListener(this, new OnCompleteListener<Location>() {
                     @Override
                     public void onComplete(@NonNull Task<Location> task) {
                         if (task.isSuccessful() && task.getResult() != null) {
                             // Set the map's camera position to the current location of the device.
                             mLastKnownLocation = task.getResult();
-
+                            onLocationUpdate.onLocationUpdate(mLastKnownLocation);
                         }
                     }
                 });
@@ -122,7 +138,7 @@ public class CheckNoiseActivity extends AppCompatActivity {
         tvDecibel.setText(R.string.loading);
         tvDecibel.setTextSize(24);
         tvDecibel.setTextColor(getResources().getColor(R.color.text_color_white));
-
+        decibelBuffer.clear();
         if (soundMeter == null) {
             soundMeter = new SoundMeter();
         }
@@ -215,7 +231,6 @@ public class CheckNoiseActivity extends AppCompatActivity {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     mLocationPermissionGranted = true;
-                    getDeviceLocation();
                 }
                 break;
             }

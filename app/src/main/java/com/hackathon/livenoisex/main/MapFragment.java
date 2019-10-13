@@ -8,18 +8,22 @@ import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.Group;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.gauravk.audiovisualizer.visualizer.WaveVisualizer;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -35,7 +39,12 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.google.maps.android.heatmaps.Gradient;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 import com.google.maps.android.heatmaps.WeightedLatLng;
@@ -48,11 +57,14 @@ import com.hackathon.livenoisex.models.Device;
 import com.hackathon.livenoisex.models.MapModel;
 import com.hackathon.livenoisex.models.Report;
 import com.hackathon.livenoisex.models.ReportModel;
+import com.hackathon.livenoisex.utils.AudioPlayer;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +78,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private GoogleMap mMap;
 
     private CameraPosition mCameraPosition;
-
+    private AudioPlayer mAudioPlayer;
 
     // The entry point to the Fused Location Provider.
     private FusedLocationProviderClient mFusedLocationProviderClient;
@@ -89,6 +101,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private List<Report> mReportList;
     private List<Marker> mReportMakerList;
     private float mZoom = DEFAULT_ZOOM;
+    private WaveVisualizer mVisualizer;
+    private FirebaseStorage storage;
 
 
     public static MapFragment newInstance() {
@@ -98,7 +112,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         // Retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
             mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
@@ -132,6 +145,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        storage = FirebaseStorage.getInstance();
+
         SupportMapFragment mapFragment = (SupportMapFragment) this.getChildFragmentManager()
                 .findFragmentById(R.id.map);
 
@@ -197,6 +213,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         getSoundData();
 
         getReportData();
+
+        mAudioPlayer = new AudioPlayer();
 
     }
 
@@ -467,31 +485,127 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         View view = inflater.inflate(R.layout.dialog_resource, null);
         builder.setView(view);
 
-        ((TextView)view.findViewById(R.id.tv_decibel)).setText(report.getDecibel()+"");
-        ((TextView)view.findViewById(R.id.tv_desc)).setText(report.getDescription());
-        ((TextView)view.findViewById(R.id.tv_location)).setText(String.format("%.2f - %.2f",
+        ((TextView) view.findViewById(R.id.tv_decibel)).setText(report.getDecibel() + "");
+        ((TextView) view.findViewById(R.id.tv_desc)).setText(report.getDescription());
+        ((TextView) view.findViewById(R.id.tv_location)).setText(String.format("%.2f - %.2f",
                 report.getLatitude(), report.getLongtitude()));
-        ((TextView)view.findViewById(R.id.tv_phone)).setText(report.getPhone()+"");
+        ((TextView) view.findViewById(R.id.tv_phone)).setText(report.getPhone() + "");
 
-        ((TextView)view.findViewById(R.id.btn_call)).setOnClickListener(new View.OnClickListener() {
+        ((TextView) view.findViewById(R.id.btn_call)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String uri = "tel:" + report.getPhone() ;
+                String uri = "tel:" + report.getPhone();
                 Intent intent = new Intent(Intent.ACTION_DIAL);
                 intent.setData(Uri.parse(uri));
                 startActivity(intent);
             }
         });
 
+        mVisualizer = view.findViewById(R.id.wave);
+        Group mediaGroup = view.findViewById(R.id.group_media);
+        final ImageView btnStart = view.findViewById(R.id.btn_start);
+        final ImageView btnStop = view.findViewById(R.id.btn_stop);
+
+        if (!TextUtils.isEmpty(report.getUrl())) {
+            mediaGroup.setVisibility(View.VISIBLE);
+            mediaGroup.setVisibility(View.VISIBLE);
+            btnStop.setVisibility(View.GONE);
+            btnStart.setVisibility(View.VISIBLE);
+            btnStart.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    btnStop.setVisibility(View.VISIBLE);
+                    btnStart.setVisibility(View.GONE);
+                    startPlayingAudio(report.getUrl(), new AudioPlayer.AudioPlayerEvent() {
+                        @Override
+                        public void onCompleted() {
+                            if (mVisualizer != null) {
+                                mVisualizer.hide();
+                            }
+                            btnStop.setVisibility(View.GONE);
+                            btnStart.setVisibility(View.VISIBLE);
+                        }
+                    });
+
+                }
+            });
+
+            btnStop.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    stopPlayingAudio();
+                    btnStop.setVisibility(View.GONE);
+                    btnStart.setVisibility(View.VISIBLE);
+                }
+            });
+        }
+
         // Add action buttons;
         dialog = builder.create();
         final Dialog finalDialog = dialog;
-        ((TextView)view.findViewById(R.id.btn_close)).setOnClickListener(new View.OnClickListener() {
+        ((TextView) view.findViewById(R.id.btn_close)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 finalDialog.cancel();
             }
         });
         return dialog;
+    }
+
+    public interface OnDownloadFileResult {
+        void onDownloadSuccess(String filePath);
+
+        void onDownloadFailure();
+    }
+
+    private void downloadFileAudio(String url, final OnDownloadFileResult onDownloadFileResult) {
+        StorageReference audioRef = storage.getReferenceFromUrl(url);
+        File localFile = null;
+        try {
+            localFile = File.createTempFile("ln_report", ".mp3");
+        } catch (IOException e) {
+            onDownloadFileResult.onDownloadFailure();
+            e.printStackTrace();
+            return;
+        }
+        final String filePath = localFile.getAbsolutePath();
+
+        audioRef.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                // Local temp file has been created
+                onDownloadFileResult.onDownloadSuccess(filePath);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                // Handle any errors
+                onDownloadFileResult.onDownloadFailure();
+            }
+        });
+    }
+
+    private void startPlayingAudio(String filePath, AudioPlayer.AudioPlayerEvent audioPlayerEvent) {
+        if(mVisualizer!=null){
+            mVisualizer.show();
+        }
+        mAudioPlayer.play(getActivity(), filePath, audioPlayerEvent);
+        int audioSessionId = mAudioPlayer.getAudioSessionId();
+        if (audioSessionId != -1)
+            mVisualizer.setAudioSessionId(audioSessionId);
+    }
+
+    private void stopPlayingAudio() {
+        if (mAudioPlayer != null)
+            mAudioPlayer.stop();
+
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mAudioPlayer.stop();
+        if (mVisualizer != null)
+            mVisualizer.release();
     }
 }
