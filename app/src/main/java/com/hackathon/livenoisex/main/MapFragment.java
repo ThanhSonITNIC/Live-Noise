@@ -49,6 +49,7 @@ import com.google.maps.android.heatmaps.Gradient;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 import com.google.maps.android.heatmaps.WeightedLatLng;
 import com.hackathon.livenoisex.R;
+import com.hackathon.livenoisex.forceground.DeepSoundListener;
 import com.hackathon.livenoisex.interfaces.DeviceUpdateListener;
 import com.hackathon.livenoisex.interfaces.GetDataListener;
 import com.hackathon.livenoisex.interfaces.GetReportsListener;
@@ -124,8 +125,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         // Construct a FusedLocationProviderClient.
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(getActivity());
 
-
+        Intent serviceIntent = new Intent(getContext(), DeepSoundListener.class);
+        ContextCompat.startForegroundService(getContext(), serviceIntent);
     }
+
+
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,

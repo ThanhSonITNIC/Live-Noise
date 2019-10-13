@@ -74,7 +74,7 @@ public class RecordActivity extends AppCompatActivity {
         showFragmentRecord();
     }
 
-    private void showFragmentRecord() {
+    public void showFragmentRecord() {
         state = STATE_RECORD;
         tvNext.setVisibility(View.VISIBLE);
         fragmentRecord = FragmentRecord.newInstance();
@@ -84,7 +84,7 @@ public class RecordActivity extends AppCompatActivity {
                 .commit();
     }
 
-    private void onClickNext() {
+    public void onClickNext() {
         if (state == STATE_RECORD) {
             if(fragmentRecord.isRecorded()){
                 showFragmentInfo();
@@ -92,7 +92,7 @@ public class RecordActivity extends AppCompatActivity {
         }
     }
 
-    private void showFragmentInfo() {
+    public void showFragmentInfo() {
         state = STATE_INFO;
         tvNext.setVisibility(View.GONE);
         fragmentRecordInfo = FragmentRecordInfo.newInstance(decibel, latitude, longtitude, fragmentRecord.getChildPath());
@@ -103,7 +103,7 @@ public class RecordActivity extends AppCompatActivity {
                 .commit();
     }
 
-    private void onClickBack() {
+    public void onClickBack() {
         if(state == STATE_INFO){
             state = STATE_RECORD;
             tvNext.setVisibility(View.VISIBLE);

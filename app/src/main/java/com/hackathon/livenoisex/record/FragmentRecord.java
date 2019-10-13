@@ -57,6 +57,7 @@ public class FragmentRecord extends Fragment implements View.OnClickListener {
 
     // this process must be done prior to the start of recording
     private void resetRecorder() {
+        mediaRecorder = new MediaRecorder();
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
@@ -77,9 +78,13 @@ public class FragmentRecord extends Fragment implements View.OnClickListener {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_start:
-                mediaRecorder = new MediaRecorder();
                 resetRecorder();
-                mediaRecorder.start();
+                try{
+                    mediaRecorder.start();
+                }catch (IllegalStateException e){
+                    e.printStackTrace();
+                    return;
+                }
 
                 recorded = true;
                 viewIndicator.setVisibility(View.VISIBLE);
@@ -99,6 +104,7 @@ public class FragmentRecord extends Fragment implements View.OnClickListener {
 
                 btnStart.setVisibility(View.VISIBLE);
                 btnStop.setVisibility(View.GONE);
+                ((RecordActivity)getActivity()).showFragmentInfo();
                 break;
         }
     }

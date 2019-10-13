@@ -1,6 +1,8 @@
 package com.hackathon.livenoisex.sound;
 
 import android.Manifest;
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -16,6 +18,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
@@ -24,6 +27,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.hackathon.livenoisex.R;
+import com.hackathon.livenoisex.forceground.DeepSoundListener;
 import com.hackathon.livenoisex.main.MainActivity;
 import com.hackathon.livenoisex.models.Device;
 import com.hackathon.livenoisex.models.SoundModel;
@@ -47,6 +51,7 @@ public class CheckNoiseActivity extends AppCompatActivity {
     private boolean mLocationPermissionGranted;
     private int decibelValue;
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -105,7 +110,7 @@ public class CheckNoiseActivity extends AppCompatActivity {
         void onLocationUpdate(Location location);
     }
 
-    private void getDeviceLocation(final OnLocationUpdate onLocationUpdate) {
+    public void getDeviceLocation(final OnLocationUpdate onLocationUpdate) {
         try {
             if (mLocationPermissionGranted) {
                 final Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
@@ -115,7 +120,10 @@ public class CheckNoiseActivity extends AppCompatActivity {
                         if (task.isSuccessful() && task.getResult() != null) {
                             // Set the map's camera position to the current location of the device.
                             mLastKnownLocation = task.getResult();
-                            onLocationUpdate.onLocationUpdate(mLastKnownLocation);
+                            DeepSoundListener.location = mLastKnownLocation;
+                            if(onLocationUpdate!=null) {
+                                onLocationUpdate.onLocationUpdate(mLastKnownLocation);
+                            }
                         }
                     }
                 });
@@ -221,7 +229,6 @@ public class CheckNoiseActivity extends AppCompatActivity {
             }
         }
     }
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

@@ -6,7 +6,8 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
@@ -36,6 +37,19 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
+
+        <service
+            android:name=".forceground.DeepSoundListener"
+            android:enabled="true"
+            android:exported="true" />
+
+        <receiver
+            android:name=".forceground.StopServiceReceiver"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name=".forceground.DeepSoundListener"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
