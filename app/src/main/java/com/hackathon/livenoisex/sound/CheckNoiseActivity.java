@@ -34,6 +34,7 @@ import com.hackathon.livenoisex.models.SoundModel;
 import com.hackathon.livenoisex.record.RecordActivity;
 import com.hackathon.livenoisex.utils.RecordPermissionHelper;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -43,8 +44,8 @@ public class CheckNoiseActivity extends AppCompatActivity {
     private TextView tvDecibel, btnAction, txtResult, btnReport, btnViewMap;
     private SoundMeter soundMeter = null;
     private GetSoundThread getSoundThread;
-    private List<Double> decibelBuffer = new CopyOnWriteArrayList<>();
-    public Location mLastKnownLocation;
+    private List<Double> decibelBuffer = new ArrayList<>();
+    private Location mLastKnownLocation;
     private SoundModel soundModel = new SoundModel();
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private boolean mLocationPermissionGranted;
@@ -66,9 +67,20 @@ public class CheckNoiseActivity extends AppCompatActivity {
         btnReport.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(RecordActivity.getStartIntent(CheckNoiseActivity.this,
-                        decibelValue,
-                        mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()));
+                if(mLastKnownLocation!=null) {
+                    startActivity(RecordActivity.getStartIntent(CheckNoiseActivity.this,
+                            decibelValue,
+                            mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()));
+                } else {
+                    getDeviceLocation(new OnLocationUpdate() {
+                        @Override
+                        public void onLocationUpdate(Location location) {
+                            startActivity(RecordActivity.getStartIntent(CheckNoiseActivity.this,
+                                    decibelValue,
+                                    mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()));
+                        }
+                    });
+                }
             }
         });
 
@@ -89,13 +101,19 @@ public class CheckNoiseActivity extends AppCompatActivity {
         }
         getLocationPermission();
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        getDeviceLocation();
+
+
+
     }
 
-    public void getDeviceLocation() {
+    public interface OnLocationUpdate{
+        void onLocationUpdate(Location location);
+    }
+
+    public void getDeviceLocation(final OnLocationUpdate onLocationUpdate) {
         try {
             if (mLocationPermissionGranted) {
-                Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
+                final Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
                 locationResult.addOnCompleteListener(this, new OnCompleteListener<Location>() {
                     @Override
                     public void onComplete(@NonNull Task<Location> task) {
@@ -103,6 +121,9 @@ public class CheckNoiseActivity extends AppCompatActivity {
                             // Set the map's camera position to the current location of the device.
                             mLastKnownLocation = task.getResult();
                             DeepSoundListener.location = mLastKnownLocation;
+                            if(onLocationUpdate!=null) {
+                                onLocationUpdate.onLocationUpdate(mLastKnownLocation);
+                            }
                         }
                     }
                 });
@@ -120,11 +141,12 @@ public class CheckNoiseActivity extends AppCompatActivity {
         btnAction.setClickable(false);
         progressBar.setVisibility(View.VISIBLE);
         txtResult.setVisibility(View.GONE);
+        btnReport.setVisibility(View.GONE);
         progressBar.setVisibility(View.VISIBLE);
         tvDecibel.setText(R.string.loading);
         tvDecibel.setTextSize(24);
         tvDecibel.setTextColor(getResources().getColor(R.color.text_color_white));
-
+        decibelBuffer.clear();
         if (soundMeter == null) {
             soundMeter = new SoundMeter();
         }
@@ -139,12 +161,18 @@ public class CheckNoiseActivity extends AppCompatActivity {
             @Override
             public void run() {
                 stopRecord();
-                showResult();
+                tvDecibel.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        showResult();
+                    }
+                }, 100);
             }
         }, 5000);
     }
 
     public void showResult() {
+        btnAction.setClickable(true);
         progressBar.setVisibility(View.INVISIBLE);
         txtResult.setVisibility(View.VISIBLE);
         decibelValue = (int) getDecibelValue();
@@ -152,10 +180,10 @@ public class CheckNoiseActivity extends AppCompatActivity {
         if (decibelValue < 20) {
             tvDecibel.setTextColor(getResources().getColor(R.color.text_color_white));
             txtResult.setText(R.string.result_1);
-        } else if (decibelValue < 80) {
+        } else if (decibelValue < 78) {
             tvDecibel.setTextColor(getResources().getColor(R.color.text_color_blue));
             txtResult.setText(R.string.result_2);
-        } else if (decibelValue < 90) {
+        } else if (decibelValue < 85) {
             btnReport.setVisibility(View.VISIBLE);
             tvDecibel.setTextColor(getResources().getColor(R.color.text_color_orange));
             txtResult.setText(R.string.result_3);
@@ -175,8 +203,7 @@ public class CheckNoiseActivity extends AppCompatActivity {
 
         btnAction.setClickable(true);
         if (mLastKnownLocation != null) {
-            Device device = new Device(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude(), decibelValue);
-            soundModel.addInsensity(device);
+            soundModel.addInsensity(new Device(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude(), decibelValue));
         }
     }
 
@@ -211,7 +238,6 @@ public class CheckNoiseActivity extends AppCompatActivity {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     mLocationPermissionGranted = true;
-                    getDeviceLocation();
                 }
                 break;
             }
@@ -229,7 +255,6 @@ public class CheckNoiseActivity extends AppCompatActivity {
     }
 
     private void stopRecord() {
-        btnAction.setClickable(true);
         if (soundMeter != null) {
             soundMeter.stop();
         }

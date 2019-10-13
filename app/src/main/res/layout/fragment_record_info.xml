@@ -16,7 +16,7 @@
             android:layout_height="wrap_content"
             android:text="Average decibel"
             android:textColor="@color/text_color_black"
-            android:textSize="24dp" />
+            android:textSize="20sp" />
 
         <TextView
             android:id="@+id/tv_decibel"
@@ -34,7 +34,7 @@
             android:layout_height="wrap_content"
             android:text="Your phone"
             android:textColor="@color/text_color_black"
-            android:textSize="24dp" />
+            android:textSize="20sp" />
 
         <EditText
             android:id="@+id/edt_phone"
@@ -54,7 +54,7 @@
             android:layout_marginTop="16dp"
             android:text="Description"
             android:textColor="@color/text_color_black"
-            android:textSize="24dp" />
+            android:textSize="20sp" />
 
         <EditText
             android:id="@+id/edt_description"

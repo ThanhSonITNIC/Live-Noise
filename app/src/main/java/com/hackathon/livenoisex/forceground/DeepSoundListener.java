@@ -90,7 +90,7 @@ public class DeepSoundListener extends Service {
         final ArrayList<Integer> intensities = new ArrayList<>();
 
         final CheckNoiseActivity checkNoiseActivity = new CheckNoiseActivity();
-        checkNoiseActivity.getDeviceLocation();
+        checkNoiseActivity.getDeviceLocation(null);
 
 
         // update

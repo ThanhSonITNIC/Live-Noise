@@ -3,6 +3,7 @@
     <string name="action_settings">Settings</string>
     <string name="loading">Loading...</string>
     <string name="report">Report</string>
+    <string name="google_maps_key">AIzaSyA5UDPqCqZQiZtw17wBjjWr5cRBfZOE0p8</string>
     <string name="view_noise_map">View map</string>
     <string name="check">Check</string>
     <string name="view_map">View map</string>
@@ -12,4 +13,5 @@
     <string name="result_4">Sorry, I can\'t hear you.\nDo you need to call police?</string>
     <string name="create_report_error">Something went wrong</string>
     <string name="create_report_success">Report completed!</string>
+    <string name="upload_file_failed">Upload record file failed</string>
 </resources>
